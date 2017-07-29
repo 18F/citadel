@@ -93,10 +93,29 @@ class Citadel
       Chef::Log.debug { "StringToSign: " + to_sign.inspect }
       Chef::Log.debug { "headers: " + headers.inspect }
 
+      client = Chef::HTTP.new("https://#{hostname}")
       begin
-        Chef::HTTP.new("https://#{hostname}").get(uri_path[1..-1], headers)
+        content = client.get(uri_path[1..-1], headers)
       rescue Net::HTTPServerException => e
         raise CitadelError.new("Unable to download #{path}: #{e}")
+      end
+
+      response = client.last_response
+
+      case response
+      when Net::HTTPOK
+        return content
+      when Net::HTTPRedirection
+        # When you request a bucket at the wrong region endpoint, S3 returns an
+        # HTTP 301, but it doesn't set a Location header, so chef doesn't
+        # follow it and returns a nil response.
+        true_region = response.header['x-amz-bucket-region']
+        raise CitadelError.new(
+          "Bucket #{bucket} is actually in #{true_region}, not #{region}")
+      else
+        Chef::Log.warn("Unexpected HTTP response: #{response.inspect}")
+        Chef::Log.warn("Response body: #{response.body.inspect}")
+        raise CitadelError.new("Unexpected HTTP response: #{response.inspect}")
       end
     end
 
