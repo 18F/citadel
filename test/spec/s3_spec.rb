@@ -20,6 +20,7 @@ describe Citadel::S3 do
   let(:fake_http) { double('Chef::HTTP') }
   let(:fake_response) { double('Net::HTTPResponse') }
   let(:s3_hostname) { 's3.amazonaws.com' }
+  let(:empty_sha256) { 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }
   before do
     # Stub out the HTTP object.
     expect(Chef::HTTP).to receive(:new).with("https://#{s3_hostname}").and_return(fake_http)
@@ -30,7 +31,13 @@ describe Citadel::S3 do
   context 'with mybucket/mysecret' do
     subject { described_class.get(bucket: 'mybucket', path: 'mysecret', access_key_id: 'AKIAJMKSMHNNCQX4ILAH', secret_access_key: '0ljyHQrk1AGsc2bgx/8fbNghZNYSdckHADR4vNcL') }
     before do
-      expect(fake_http).to receive(:get).with('mybucket/mysecret', 'date' => 'Thu, 01 Jan 1970 00:00:00 GMT', 'authorization' => "AWS AKIAJMKSMHNNCQX4ILAH:TQPmJfb3Mx2MblMnRHJS1EG6jus=\n").and_return(fake_response)
+      expect(fake_http).to receive(:get).with('mybucket/mysecret',
+        'host' => 's3.amazonaws.com',
+        'x-amz-content-sha256' => empty_sha256,
+        'x-amz-date' => '19700101T000000Z',
+        'x-amz-expires' => '900',
+        'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires, Signature=fcfb9ddef446db9d31c9f08a4beb05116930b9861947cb49e0c8e8f46f176938'
+      ).and_return(fake_response)
     end
 
     it { is_expected.to be fake_response }
@@ -39,7 +46,14 @@ describe Citadel::S3 do
   context 'with token' do
     subject { described_class.get(bucket: 'mybucket', path: 'mysecret', access_key_id: 'AKIAJMKSMHNNCQX4ILAH', secret_access_key: '0ljyHQrk1AGsc2bgx/8fbNghZNYSdckHADR4vNcL', token: 'EIZvol3NYAGhIYo3mxmF8Bw3GjRFQq6xmjrlXNQs') }
     before do
-      expect(fake_http).to receive(:get).with('mybucket/mysecret', 'date' => 'Thu, 01 Jan 1970 00:00:00 GMT', 'authorization' => "AWS AKIAJMKSMHNNCQX4ILAH:ZapoW/urO8FlRSEf+y5iWYeNsrs=\n", 'x-amz-security-token' => 'EIZvol3NYAGhIYo3mxmF8Bw3GjRFQq6xmjrlXNQs').and_return(fake_response)
+      expect(fake_http).to receive(:get).with('mybucket/mysecret',
+        'host' => 's3.amazonaws.com',
+        'x-amz-content-sha256' => empty_sha256,
+        'x-amz-date' => '19700101T000000Z',
+        'x-amz-expires' => '900',
+        'x-amz-security-token' => 'EIZvol3NYAGhIYo3mxmF8Bw3GjRFQq6xmjrlXNQs',
+        'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires;x-amz-security-token, Signature=e5ea717df9b8c93e15b30c86900c016a0d81b46c4b007644ffc80795ff8da15f'
+      ).and_return(fake_response)
     end
 
     it { is_expected.to be fake_response }
@@ -49,7 +63,13 @@ describe Citadel::S3 do
     let(:s3_hostname) { 's3-us-west-2.amazonaws.com' }
     subject { described_class.get(bucket: 'mybucket', path: 'mysecret', access_key_id: 'AKIAJMKSMHNNCQX4ILAH', secret_access_key: '0ljyHQrk1AGsc2bgx/8fbNghZNYSdckHADR4vNcL', region: 'us-west-2') }
     before do
-      expect(fake_http).to receive(:get).with('mybucket/mysecret', 'date' => 'Thu, 01 Jan 1970 00:00:00 GMT', 'authorization' => "AWS AKIAJMKSMHNNCQX4ILAH:TQPmJfb3Mx2MblMnRHJS1EG6jus=\n").and_return(fake_response)
+      expect(fake_http).to receive(:get).with('mybucket/mysecret',
+        'host' => 's3-us-west-2.amazonaws.com',
+        'x-amz-content-sha256' => empty_sha256,
+        'x-amz-date' => '19700101T000000Z',
+        'x-amz-expires' => '900',
+        'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires, Signature=be57f3bb860d84dae7e8637a75741efdad9796c281c5d3d34ec2c8a5d76663d5'
+      ).and_return(fake_response)
     end
 
     it { is_expected.to be fake_response }
@@ -58,10 +78,19 @@ describe Citadel::S3 do
   context 'with an exception' do
     subject { described_class.get(bucket: 'mybucket', path: 'mysecret', access_key_id: 'AKIAJMKSMHNNCQX4ILAH', secret_access_key: '0ljyHQrk1AGsc2bgx/8fbNghZNYSdckHADR4vNcL') }
     before do
-      expect(fake_http).to receive(:get).with('mybucket/mysecret', 'date' => 'Thu, 01 Jan 1970 00:00:00 GMT', 'authorization' => "AWS AKIAJMKSMHNNCQX4ILAH:TQPmJfb3Mx2MblMnRHJS1EG6jus=\n").and_raise(Net::HTTPServerException.new(nil, nil))
+      expect(fake_http).to receive(:get).with('mybucket/mysecret',
+        'host' => 's3.amazonaws.com',
+        'x-amz-content-sha256' => empty_sha256,
+        'x-amz-date' => '19700101T000000Z',
+        'x-amz-expires' => '900',
+        'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires, Signature=fcfb9ddef446db9d31c9f08a4beb05116930b9861947cb49e0c8e8f46f176938'
+      ).and_raise(Net::HTTPServerException.new(nil, nil))
     end
 
-    it { expect { subject }.to raise_error Citadel::CitadelError }
+    it { expect { subject }.to raise_error {|error|
+      expect(error).to be_a(Citadel::CitadelError)
+      expect(error.wrapped_exception).to be_a(Net::HTTPServerException)
+    } }
   end # /context with an exception
 end
 
