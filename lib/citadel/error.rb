@@ -24,10 +24,20 @@
 
 
 class Citadel
-  # Base class for Citadell errors.
+  # Base class for Citadel errors.
   #
   # @since 1.0.0
   # @api private
-  class CitadelError < Exception
+  class CitadelError < StandardError
+
+    # If a CitadelError is raised from a rescue block, the wrapped_exception will
+    # by default be the original exception (pulled from $!).
+    #
+    attr_reader :wrapped_exception
+
+    def initialize(message=nil, wrapped_exception: $!)
+      super(message)
+      @wrapped_exception = wrapped_exception
+    end
   end
 end
