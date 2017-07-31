@@ -38,6 +38,7 @@ describe Citadel::S3 do
         'x-amz-expires' => '900',
         'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires, Signature=fcfb9ddef446db9d31c9f08a4beb05116930b9861947cb49e0c8e8f46f176938'
       ).and_return(fake_response)
+      expect(fake_http).to receive(:last_response).and_return(Net::HTTPOK.new(nil, nil, nil))
     end
 
     it { is_expected.to be fake_response }
@@ -54,6 +55,7 @@ describe Citadel::S3 do
         'x-amz-security-token' => 'EIZvol3NYAGhIYo3mxmF8Bw3GjRFQq6xmjrlXNQs',
         'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires;x-amz-security-token, Signature=e5ea717df9b8c93e15b30c86900c016a0d81b46c4b007644ffc80795ff8da15f'
       ).and_return(fake_response)
+      expect(fake_http).to receive(:last_response).and_return(Net::HTTPOK.new(nil, nil, nil))
     end
 
     it { is_expected.to be fake_response }
@@ -70,6 +72,7 @@ describe Citadel::S3 do
         'x-amz-expires' => '900',
         'authorization' => 'AWS4-HMAC-SHA256 Credential=AKIAJMKSMHNNCQX4ILAH/19700101/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-expires, Signature=be57f3bb860d84dae7e8637a75741efdad9796c281c5d3d34ec2c8a5d76663d5'
       ).and_return(fake_response)
+      expect(fake_http).to receive(:last_response).and_return(Net::HTTPOK.new(nil, nil, nil))
     end
 
     it { is_expected.to be fake_response }
